@@ -49,3 +49,23 @@ document.querySelectorAll('pre, code').forEach(block => {
         alert('Code Copied to Clipboard!');
     };
 });
+<div class="tabs">
+    <button onclick="setMode('chat')">CHAT</button>
+    <button onclick="setMode('image')">IMAGE (4K)</button>
+    <button onclick="setMode('video')">VIDEO (SDR2)</button>
+</div>
+
+<div id="media-output" style="margin-top:20px; display:none;">
+    <img id="res-img" class="neon-box" style="display:none; width:100%;">
+    <video id="res-vid" class="neon-box" style="display:none; width:100%;" controls></video>
+</div>
+
+<style>
+    .neon-box { 
+        border: 2px solid #0ff; 
+        box-shadow: 0 0 20px #0ff, inset 0 0 10px #0ff; 
+        border-radius: 12px;
+        background: #000;
+    }
+</style>
+
