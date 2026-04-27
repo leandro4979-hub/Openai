@@ -42,3 +42,10 @@
     </script>
 </body>
 </html>
+// Add this inside your 'send' function after the AI responds
+document.querySelectorAll('pre, code').forEach(block => {
+    block.onclick = () => {
+        navigator.clipboard.writeText(block.innerText);
+        alert('Code Copied to Clipboard!');
+    };
+});
