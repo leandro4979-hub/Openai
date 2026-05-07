@@ -49,3 +49,49 @@ document.querySelectorAll('pre, code').forEach(block => {
         alert('Code Copied to Clipboard!');
     };
 });
+<div class="tabs">
+    <button onclick="setMode('chat')">CHAT</button>
+    <button onclick="setMode('image')">IMAGE (4K)</button>
+    <button onclick="setMode('video')">VIDEO (SDR2)</button>
+</div>
+
+<div id="media-output" style="margin-top:20px; display:none;">
+    <img id="res-img" class="neon-box" style="display:none; width:100%;">
+    <video id="res-vid" class="neon-box" style="display:none; width:100%;" controls></video>
+</div>
+
+<style>
+    .neon-box { 
+        border: 2px solid #0ff; 
+        box-shadow: 0 0 20px #0ff, inset 0 0 10px #0ff; 
+        border-radius: 12px;
+        background: #000;
+    }
+</style>
+export default async function handler(req, res) {
+  const { path = [] } = req.query;
+  const isVideo = path.includes('seedance');
+  
+  // Choose the right key based on the request
+  const apiKey = isVideo ? process.env.SEEDANCE_API_KEY : process.env.GEMINI_API_KEY;
+  const url = isVideo 
+    ? `https://api.byteplus.com/v1/seedance-2.0/${path.join("/")}`
+    : `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      ...req.body,
+      // God Mode: Seedance 2.0 generates video + audio in one shot
+      ...(isVideo && { generate_audio: true, quality: "1080p" })
+    })
+  });
+
+  const data = await response.json();
+  res.status(response.status).json(data);
+}
+
