@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         👑 OMNI ENGINE - iPhone 14 Ultimate Casino Core (Turbo)
+// @name         👑 OMNI ENGINE - iPhone 14 Ultimate Casino Core (Turbo v9.7.1)
 // @namespace    http://tampermonkey.net/
-// @version      9.7.0
+// @version      9.7.1
 // @description  Max-Performance Debounced Target Capture with Advanced iPhone 14 Hardware Masquerade
 // @match        https://*.crowncoinscasino.com/*
 // @match        https://*.crowncoins.com/*
@@ -109,5 +109,4 @@
         document.addEventListener('DOMContentLoaded', start);
     } else {
         start();
-    }
-})()
+   
