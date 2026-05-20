@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         👑 OMNI ENGINE - iPhone 14 Ultimate Casino Core
+// @name         👑 OMNI ENGINE - iPhone 14 Ultimate Casino Core (Turbo)
 // @namespace    http://tampermonkey.net/
-// @version      9.6.0
-// @description  Max-Performance TreeWalker Target Capture with Integrated iPhone 14 UA Masquerade
+// @version      9.7.0
+// @description  Max-Performance Debounced Target Capture with Advanced iPhone 14 Hardware Masquerade
 // @match        https://*.crowncoinscasino.com/*
 // @match        https://*.crowncoins.com/*
 // @match        https://*.playfame.com/*
@@ -17,13 +17,21 @@
 (function() {
     'use strict';
 
-    try {
-        const iphoneUA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
-        Object.defineProperty(navigator, 'userAgent', { get: () => iphoneUA });
-        Object.defineProperty(navigator, 'platform', { get: () => 'iPhone' });
-    } catch (e) {
-        console.log("UA Masquerade locked.");
-    }
+    const iphoneUA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1";
+    
+    const override = (obj, prop, value) => {
+        try {
+            Object.defineProperty(obj, prop, {
+                get: () => value,
+                configurable: true,
+                enumerable: true
+            });
+        } catch(e) {}
+    };
+
+    override(navigator, 'userAgent', iphoneUA);
+    override(navigator, 'platform', 'iPhone');
+    override(navigator, 'maxTouchPoints', 5);
 
     const TARGETS = [
         '.daily-bonus-claim', '[class*="claim-button"]', '.free-coins-collect',
@@ -76,16 +84,20 @@
                     clientY: tapY
                 }));
             });
-            console.log(`▶ [STABILIZED] Auto-clicked coordinates: (${tapX}, ${tapY})`);
+            console.log(`▶ [TURBO] Auto-clicked coordinates: (${tapX}, ${tapY})`);
         }
     }
 
-    const coreObserver = new MutationObserver(muts => {
-        for (let i = 0; i < muts.length; i++) {
-            muts[i].addedNodes.forEach(n => {
-                if (n.nodeType === 1) fastScan(n).forEach(runInteraction);
-            });
-        }
+    let scanQueued = false;
+
+    const coreObserver = new MutationObserver(() => {
+        if (scanQueued) return;
+        scanQueued = true;
+
+        requestAnimationFrame(() => {
+            fastScan(document.body).forEach(runInteraction);
+            scanQueued = false;
+        });
     });
 
     function start() {
@@ -98,4 +110,4 @@
     } else {
         start();
     }
-})();
+})()
