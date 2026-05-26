@@ -9,56 +9,82 @@ function validateRequest(body) {
 
   return true;
 }
+
+function selectModel(path) {
+  const safePath = Array.isArray(path) ? path : [String(path)];
+
+  if (safePath.includes("seedance")) {
+    return {
+      id: "bytedance/seedance-2.0/text-to-video",
+      type: "video",
+    };
+  }
+
+  return {
+    id: "google/gemini-3.1-flash-image",
+    type: "image",
+  };
+}
+
+// simple timeout wrapper (VERY useful in production)
+function withTimeout(ms) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+  return { controller, timeout };
+}
+
 export default async function handler(req, res) {
   try {
-    // 1. Only allow POST
     if (req.method !== "POST") {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
+    validateRequest(req.body);
+
     const { path = [] } = req.query;
+    const { id: modelId, type } = selectModel(path);
 
-    // 2. Safe path handling
-    const safePath = Array.isArray(path) ? path : [String(path)];
+    const { controller, timeout } = withTimeout(60000); // 60s max
 
-    const isVideo = safePath.includes("seedance");
-
-    // 3. Model routing
-    const modelId = isVideo
-      ? "bytedance/seedance-2.0/text-to-video"
-      : "google/gemini-3.1-flash-image";
-
-    // 4. API call
     const response = await fetch(`https://fal.run/${modelId}`, {
       method: "POST",
+      signal: controller.signal,
       headers: {
         Authorization: `Key ${process.env.FAL_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         ...req.body,
-
-        // Defaults (safe + consistent)
-        generate_audio: isVideo,
-        resolution: isVideo ? "1080p" : "1024x1024",
-        duration: isVideo ? "auto" : undefined,
+        generate_audio: type === "video",
+        resolution: type === "video" ? "1080p" : "1024x1024",
+        duration: type === "video" ? "auto" : undefined,
       }),
     });
 
+    clearTimeout(timeout);
+
     const data = await response.json();
 
-    // 5. Handle API errors cleanly
     if (!response.ok) {
       return res.status(response.status).json({
-        error: "FAL API error",
+        error: "AI provider error",
+        model: modelId,
         details: data,
       });
     }
 
-    // 6. Success response
-    return res.status(200).json(data);
+    // normalized response (clean API layer)
+    return res.status(200).json({
+      success: true,
+      type,
+      model: modelId,
+      output: data,
+      timestamp: Date.now(),
+    });
+
   } catch (error) {
     return res.status(500).json({
+      success: false,
       error: "Internal server error",
       message: error.message,
     });
