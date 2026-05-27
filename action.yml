@@ -1,0 +1,19 @@
+name: 'Nexus Omni Engine'
+description: 'Generate image from prompt'
+inputs:
+  fal_key:
+    description: 'FAL.ai API key'
+    required: true
+  prompt:
+    description: 'Image prompt'
+    required: true
+  subject_id:
+    description: 'Consistency ID'
+    required: false
+    default: 'nexus-v2'
+outputs:
+  image_url:
+    description: 'Generated image URL'
+runs:
+  using: 'node20'
+  main: 'index.js'   # ← your JavaScript entry point
