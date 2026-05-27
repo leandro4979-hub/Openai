@@ -26,5 +26,12 @@ async function run() {
     core.setFailed(error.message);
   }
 }
-
+{
+  "name": "nexus-omni-engine",
+  "main": "index.js",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "node-fetch": "^2.6.7"
+  }
+}
 run();
