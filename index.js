@@ -1,37 +1,51 @@
-// index.js
-const core = require('@actions/core');
-const fetch = require('node-fetch');
+const core = require("@actions/core");
+
+const ENDPOINT = "https://fal.run/fal-ai/flux/dev";
+
+function extractImageUrl(payload) {
+  const image = payload?.images?.[0];
+  return image?.url || payload?.image?.url || payload?.url || "";
+}
 
 async function run() {
   try {
-    const apiKey = core.getInput('fal_key');
-    const prompt = core.getInput('prompt');
-    const subjectId = core.getInput('subject_id');
+    const apiKey = core.getInput("fal_key", { required: true });
+    const prompt = core.getInput("prompt", { required: true }).trim();
+    const subjectId = core.getInput("subject_id").trim();
 
-    // Your Gemini API call (or FAL.ai) – modify as needed
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent';
-    const response = await fetch(url, {
-      method: 'POST',
+    if (!prompt) {
+      throw new Error("The prompt cannot be empty.");
+    }
+
+    const response = await fetch(ENDPOINT, {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
+        Authorization: `Key ${apiKey}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ prompt, subject_id: subjectId })
+      body: JSON.stringify({
+        prompt,
+        ...(subjectId ? { seed: subjectId } : {}),
+      }),
     });
-    const data = await response.json();
-    const imageUrl = data.imageUrl || data.url; // adjust based on actual response
 
-    core.setOutput('image_url', imageUrl);
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      const detail = payload?.detail || payload?.error || response.statusText;
+      throw new Error(`FAL request failed (${response.status}): ${detail}`);
+    }
+
+    const imageUrl = extractImageUrl(payload);
+    if (!imageUrl) {
+      throw new Error("The provider returned no image URL.");
+    }
+
+    core.setSecret(apiKey);
+    core.setOutput("image_url", imageUrl);
+    core.info("Image generation completed.");
   } catch (error) {
-    core.setFailed(error.message);
+    core.setFailed(error instanceof Error ? error.message : String(error));
   }
 }
-{
-  "name": "nexus-omni-engine",
-  "main": "index.js",
-  "dependencies": {
-    "@actions/core": "^1.10.0",
-    "node-fetch": "^2.6.7"
-  }
-}
+
 run();

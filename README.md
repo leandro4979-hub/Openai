@@ -1,117 +1,73 @@
-function validateRequest(body) {
-  if (!body || typeof body !== "object") {
-    throw new Error("Invalid request body");
-  }
+# Nexus Omni Studio
 
-  if (!body.prompt || typeof body.prompt !== "string") {
-    throw new Error("Missing or invalid prompt");
-  }
+An honest, lightweight prompt workspace for shaping image, video, and chat ideas before sending them to an AI provider.
 
-  return true;
-}
+![Status](https://img.shields.io/badge/status-foundation_ready-6ee7b7)
+![Node](https://img.shields.io/badge/node-20%2B-5fa04e)
+![License](https://img.shields.io/badge/license-MIT-8b5cf6)
 
-function selectModel(path) {
-  const safePath = Array.isArray(path) ? path : [String(path)];
+## What works today
 
-  if (safePath.includes("seedance")) {
-    return {
-      id: "bytedance/seedance-2.0/text-to-video",
-      type: "video",
-    };
-  }
+- A responsive prompt workspace with chat, image, and video modes
+- Starter prompts that can be loaded and edited
+- Local prompt history stored in the browser
+- Copy-to-clipboard and clear-history controls
+- A reusable GitHub Action for FAL image generation
+- Automated checks for JavaScript, metadata, and the static experience
 
-  return {
-    id: "google/gemini-3.1-flash-image",
-    type: "image",
-  };
-}
+The web interface does **not** pretend to generate media. It prepares prompts locally and labels provider integration as the next milestone.
 
-// simple timeout wrapper (VERY useful in production)
-function withTimeout(ms) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), ms);
-  return { controller, timeout };
-}
+## Try the workspace
 
-export default async function handler(req, res) {
-  try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
+No installation is required:
 
-    validateRequest(req.body);
+```bash
+git clone https://github.com/leandro4979-hub/Openai.git
+cd Openai
+npm install
+npm run dev
+```
 
-    const { path = [] } = req.query;
-    const { id: modelId, type } = selectModel(path);
+Open `http://localhost:4173`.
 
-    const { controller, timeout } = withTimeout(60000); // 60s max
+## Run the GitHub Action
 
-    const response = await fetch(`https://fal.run/${modelId}`, {
-      method: "POST",
-      signal: controller.signal,
-    const { path = [] } = req.query;
+1. Add `FAL_KEY` under **Settings → Secrets and variables → Actions**.
+2. Open **Actions → Nexus Omni Generate**.
+3. Choose **Run workflow**, enter a prompt, and run it.
+4. Open the workflow summary to view the generated image.
 
-    const isVideo = Array.isArray(path)
-      ? path.includes("seedance")
-      : String(path).includes("seedance");
+The action currently targets `fal-ai/flux/dev`. Provider responses are validated and failures are reported instead of returning placeholder output.
 
-    const modelId = isVideo
-      ? "bytedance/seedance-2.0/text-to-video"
-      : "google/gemini-3.1-flash-image";
+## Project map
 
-    const response = await fetch(`https://fal.run/${modelId}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Key ${process.env.FAL_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...req.body,
-        generate_audio: type === "video",
-        resolution: type === "video" ? "1080p" : "1024x1024",
-        duration: type === "video" ? "auto" : undefined,
-      }),
-    });
+```text
+.
+├── index.html                 # Prompt workspace
+├── index.js                   # GitHub Action runtime
+├── action.yml                 # Reusable action definition
+├── main.yml                   # Workflow template/reference
+├── package.json               # Local scripts and dependencies
+└── .github/workflows/
+    ├── ci.yml                 # Repository checks
+    └── pages.yml              # GitHub Pages deployment
+```
 
-    clearTimeout(timeout);
+## Roadmap
 
+- Add an authenticated server-side provider adapter
+- Stream real job status into the workspace
+- Add a generated-media gallery with provenance
+- Add provider-agnostic request and response contracts
 
-        // Video / image generation defaults
-        generate_audio: true,
-        resolution: "1080p",
-        duration: "auto",
-      }),
-    });
+## Security
 
-    const data = await response.json();
+Never put API keys in `index.html`, commits, or browser storage. Use GitHub Actions secrets for workflows and server-side environment variables for a future API.
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: "AI provider error",
-        model: modelId,
-        error: "FAL API error",
-        details: data,
-      });
-    }
+## Contributing
 
-    // normalized response (clean API layer)
-    return res.status(200).json({
-      success: true,
-      type,
-      model: modelId,
-      output: data,
-      timestamp: Date.now(),
-    });
+Open an issue describing the expected outcome and the provider or environment involved. Small, testable pull requests are preferred.
 
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: "Internal server error",
-    return res.status(200).json(data);
-  } catch (error) {
-    return res.status(500).json({
-      error: "Server error",
-      message: error.message,
-    });
-  }
-}
+## License
+
+[MIT](LICENSE)
