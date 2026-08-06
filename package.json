@@ -5,14 +5,18 @@
   "description": "A focused prompt workspace and reusable AI image generation action.",
   "main": "index.js",
   "scripts": {
+    "build": "ncc build index.js -o dist --minify",
     "dev": "node scripts/dev-server.mjs",
-    "check": "node --check index.js && node scripts/check-project.mjs",
+    "check": "node --check index.js && node --test && node scripts/check-project.mjs",
     "test": "npm run check"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "@actions/core": "^3.0.1"
+    "@actions/core": "^2.0.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.4"
   }
 }

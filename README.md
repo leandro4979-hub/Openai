@@ -30,14 +30,28 @@ npm run dev
 
 Open `http://localhost:4173`.
 
-## Run the GitHub Action
+## Generate an image with GitHub Actions
 
 1. Add `FAL_KEY` under **Settings → Secrets and variables → Actions**.
-2. Open **Actions → Nexus Omni Generate**.
-3. Choose **Run workflow**, enter a prompt, and run it.
-4. Open the workflow summary to view the generated image.
+2. Open **Actions → Nexus Omni Generate** and choose **Run workflow**.
+3. Enter an image prompt. Optionally enter a whole-number seed to reproduce a generation request.
+4. Run the workflow and open its summary to view or download the generated image.
 
-The action currently targets `fal-ai/flux/dev`. Provider responses are validated and failures are reported instead of returning placeholder output.
+The workflow passes the secret to the reusable action as `fal_key`; the key is never written to logs. The action targets `fal-ai/flux/dev`, validates optional seeds before calling FAL, and reports provider failures instead of returning placeholder output.
+
+## Reuse the action
+
+The action bundles its runtime dependencies in `dist/index.js`, so consumers do not need to run `npm install` before invoking it.
+
+```yaml
+- uses: leandro4979-hub/Openai@main
+  with:
+    fal_key: ${{ secrets.FAL_KEY }}
+    prompt: A sunlit greenhouse filled with rare orchids
+    seed: 42 # optional whole number
+```
+
+`seed` is optional. If provided, it must be a JavaScript-safe whole number (for example, `42` or `-7`); decimals and text values are rejected.
 
 ## Project map
 
@@ -46,10 +60,11 @@ The action currently targets `fal-ai/flux/dev`. Provider responses are validated
 ├── index.html                 # Prompt workspace
 ├── index.js                   # GitHub Action runtime
 ├── action.yml                 # Reusable action definition
-├── main.yml                   # Workflow template/reference
+├── dist/index.js              # Bundled GitHub Action runtime
 ├── package.json               # Local scripts and dependencies
 └── .github/workflows/
     ├── ci.yml                 # Repository checks
+    ├── nexus-omni-generate.yml # Manually dispatched FAL generation
     └── pages.yml              # GitHub Pages deployment
 ```
 

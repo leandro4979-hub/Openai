@@ -7,11 +7,27 @@ function extractImageUrl(payload) {
   return image?.url || payload?.image?.url || payload?.url || "";
 }
 
+function parseSeed(value) {
+  const seed = value.trim();
+  if (!seed) return undefined;
+
+  if (!/^-?\d+$/.test(seed)) {
+    throw new Error("The seed must be a whole number.");
+  }
+
+  const numericSeed = Number(seed);
+  if (!Number.isSafeInteger(numericSeed)) {
+    throw new Error("The seed must be a safe integer.");
+  }
+
+  return numericSeed;
+}
+
 async function run() {
   try {
     const apiKey = core.getInput("fal_key", { required: true });
     const prompt = core.getInput("prompt", { required: true }).trim();
-    const subjectId = core.getInput("subject_id").trim();
+    const seed = parseSeed(core.getInput("seed"));
 
     if (!prompt) {
       throw new Error("The prompt cannot be empty.");
@@ -25,7 +41,7 @@ async function run() {
       },
       body: JSON.stringify({
         prompt,
-        ...(subjectId ? { seed: subjectId } : {}),
+        ...(seed === undefined ? {} : { seed }),
       }),
     });
 
@@ -48,4 +64,8 @@ async function run() {
   }
 }
 
-run();
+module.exports = { extractImageUrl, parseSeed };
+
+if (require.main === module) {
+  run();
+}
