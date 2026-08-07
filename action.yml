@@ -11,8 +11,8 @@ inputs:
   prompt:
     description: Image prompt
     required: true
-  subject_id:
-    description: Optional stable numeric seed
+  seed:
+    description: Optional integer seed for reproducible output
     required: false
     default: ""
 outputs:
@@ -20,4 +20,4 @@ outputs:
     description: Generated image URL
 runs:
   using: node20
-  main: index.js
+  main: dist/index.js
