@@ -10,7 +10,7 @@ for (const [path, content] of contents) {
 }
 
 const html = contents.find(([path]) => path === "index.html")[1];
-for (const marker of ["<title>", 'id="prompt"', 'id="history-list"']) {
+for (const marker of ["<title>", 'id="view"', 'id="deploy"', 'src="src/game.js"']) {
   if (!html.includes(marker)) throw new Error(`index.html is missing ${marker}`);
 }
 

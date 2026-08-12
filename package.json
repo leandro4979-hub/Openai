@@ -1,8 +1,8 @@
 {
-  "name": "nexus-omni-studio",
+  "name": "blacksite-relay",
   "version": "1.0.0",
   "private": true,
-  "description": "A focused prompt workspace and reusable AI image generation action.",
+  "description": "A focused dependency-free browser FPS vertical slice and reusable AI image generation action.",
   "main": "index.js",
   "scripts": {
     "build": "ncc build index.js -o dist --minify",
