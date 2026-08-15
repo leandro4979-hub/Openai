@@ -1,23 +1,25 @@
-# Nexus Omni Studio
+# Blacksite Relay
 
-An honest, lightweight prompt workspace for shaping image, video, and chat ideas before sending them to an AI provider.
+A focused, dependency-free first-person shooter vertical slice that runs directly in a modern browser.
 
-![Status](https://img.shields.io/badge/status-foundation_ready-6ee7b7)
+![Status](https://img.shields.io/badge/status-playable_vertical_slice-ffb21c)
 ![Node](https://img.shields.io/badge/node-20%2B-5fa04e)
 ![License](https://img.shields.io/badge/license-MIT-8b5cf6)
 
-## What works today
+## Vertical slice
 
-- A responsive prompt workspace with chat, image, and video modes
-- Starter prompts that can be loaded and edited
-- Local prompt history stored in the browser
-- Copy-to-clipboard and clear-history controls
+- Mouse-look raycast first-person rendering in a deliberately compact three-lane arena
+- Responsive sprinting, collision, recoil, automatic fire, reloads, damage falloff, and headshots
+- Three perception-driven guards with patrol, investigation, engagement, and death states
+- Synthesized low-latency weapon audio, procedural viewmodel motion, hit confirmation, and damage feedback
+- A complete clear-and-extract mission loop with a tactical HUD and pause/deploy flow
+- Local-only deterministic ghost snapshot primitives; this slice does not claim online multiplayer
 - A reusable GitHub Action for FAL image generation
 - Automated checks for JavaScript, metadata, and the static experience
 
-The web interface does **not** pretend to generate media. It prepares prompts locally and labels provider integration as the next milestone.
+The repository retains its reusable FAL GitHub Action, but the browser experience is now Blacksite Relay.
 
-## Try the workspace
+## Play
 
 No installation is required:
 
@@ -28,7 +30,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:4173`.
+Open `http://localhost:4173`, deploy, then click the view to capture the mouse. Use WASD, Shift, R, and the mouse.
 
 ## Generate an image with GitHub Actions
 
@@ -57,7 +59,11 @@ The action bundles its runtime dependencies in `dist/index.js`, so consumers do 
 
 ```text
 .
-├── index.html                 # Prompt workspace
+├── index.html                 # Full-screen game shell and tactical HUD
+├── src/game.js                # Browser game loop and system integration
+├── src/game/                  # Combat, movement, and presentation primitives
+├── src/world/                 # Arena, AI, raycasting, and performance governor
+├── src/experience/            # HUD, local ghost snapshots, and quality gates
 ├── index.js                   # GitHub Action runtime
 ├── action.yml                 # Reusable action definition
 ├── dist/index.js              # Bundled GitHub Action runtime
@@ -68,12 +74,9 @@ The action bundles its runtime dependencies in `dist/index.js`, so consumers do 
     └── pages.yml              # GitHub Pages deployment
 ```
 
-## Roadmap
+## Quality evidence
 
-- Add an authenticated server-side provider adapter
-- Stream real job status into the workspace
-- Add a generated-media gallery with provenance
-- Add provider-agnostic request and response contracts
+Track-specific measurable gates, test evidence, independent findings, and known P2 limitations are recorded under `docs/tracks/`. Automated tests cover combat cadence, ammo conservation, movement bounds, recoil stability, arena sealing, AI transitions, raycasting, snapshot determinism, and quality-gate evaluation.
 
 ## Security
 
