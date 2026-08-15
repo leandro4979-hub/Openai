@@ -1,117 +1,91 @@
-function validateRequest(body) {
-  if (!body || typeof body !== "object") {
-    throw new Error("Invalid request body");
-  }
+# Blacksite Relay
 
-  if (!body.prompt || typeof body.prompt !== "string") {
-    throw new Error("Missing or invalid prompt");
-  }
+A focused, dependency-free first-person shooter vertical slice that runs directly in a modern browser.
 
-  return true;
-}
+![Status](https://img.shields.io/badge/status-playable_vertical_slice-ffb21c)
+![Node](https://img.shields.io/badge/node-20%2B-5fa04e)
+![License](https://img.shields.io/badge/license-MIT-8b5cf6)
 
-function selectModel(path) {
-  const safePath = Array.isArray(path) ? path : [String(path)];
+## Vertical slice
 
-  if (safePath.includes("seedance")) {
-    return {
-      id: "bytedance/seedance-2.0/text-to-video",
-      type: "video",
-    };
-  }
+- Mouse-look raycast first-person rendering in a deliberately compact three-lane arena
+- Responsive sprinting, collision, recoil, automatic fire, reloads, damage falloff, and headshots
+- Three perception-driven guards with patrol, investigation, engagement, and death states
+- Synthesized low-latency weapon audio, procedural viewmodel motion, hit confirmation, and damage feedback
+- A complete clear-and-extract mission loop with a tactical HUD and pause/deploy flow
+- Local-only deterministic ghost snapshot primitives; this slice does not claim online multiplayer
+- A reusable GitHub Action for FAL image generation
+- Automated checks for JavaScript, metadata, and the static experience
 
-  return {
-    id: "google/gemini-3.1-flash-image",
-    type: "image",
-  };
-}
+The repository retains its reusable FAL GitHub Action, but the browser experience is now Blacksite Relay.
 
-// simple timeout wrapper (VERY useful in production)
-function withTimeout(ms) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), ms);
-  return { controller, timeout };
-}
+## Play
 
-export default async function handler(req, res) {
-  try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
+No installation is required:
 
-    validateRequest(req.body);
+```bash
+git clone https://github.com/leandro4979-hub/Openai.git
+cd Openai
+npm install
+npm run dev
+```
 
-    const { path = [] } = req.query;
-    const { id: modelId, type } = selectModel(path);
+Open `http://localhost:4173`, deploy, then click the view to capture the mouse. Use WASD, Shift, R, and the mouse.
 
-    const { controller, timeout } = withTimeout(60000); // 60s max
+## Generate an image with GitHub Actions
 
-    const response = await fetch(`https://fal.run/${modelId}`, {
-      method: "POST",
-      signal: controller.signal,
-    const { path = [] } = req.query;
+1. Add `FAL_KEY` under **Settings → Secrets and variables → Actions**.
+2. Open **Actions → Nexus Omni Generate** and choose **Run workflow**.
+3. Enter an image prompt. Optionally enter a whole-number seed to reproduce a generation request.
+4. Run the workflow and open its summary to view or download the generated image.
 
-    const isVideo = Array.isArray(path)
-      ? path.includes("seedance")
-      : String(path).includes("seedance");
+The workflow passes the secret to the reusable action as `fal_key`; the key is never written to logs. The action targets `fal-ai/flux/dev`, validates optional seeds before calling FAL, and reports provider failures instead of returning placeholder output.
 
-    const modelId = isVideo
-      ? "bytedance/seedance-2.0/text-to-video"
-      : "google/gemini-3.1-flash-image";
+## Reuse the action
 
-    const response = await fetch(`https://fal.run/${modelId}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Key ${process.env.FAL_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...req.body,
-        generate_audio: type === "video",
-        resolution: type === "video" ? "1080p" : "1024x1024",
-        duration: type === "video" ? "auto" : undefined,
-      }),
-    });
+The action bundles its runtime dependencies in `dist/index.js`, so consumers do not need to run `npm install` before invoking it.
 
-    clearTimeout(timeout);
+```yaml
+- uses: leandro4979-hub/Openai@main
+  with:
+    fal_key: ${{ secrets.FAL_KEY }}
+    prompt: A sunlit greenhouse filled with rare orchids
+    seed: 42 # optional whole number
+```
 
+`seed` is optional. If provided, it must be a JavaScript-safe whole number (for example, `42` or `-7`); decimals and text values are rejected.
 
-        // Video / image generation defaults
-        generate_audio: true,
-        resolution: "1080p",
-        duration: "auto",
-      }),
-    });
+## Project map
 
-    const data = await response.json();
+```text
+.
+├── index.html                 # Full-screen game shell and tactical HUD
+├── src/game.js                # Browser game loop and system integration
+├── src/game/                  # Combat, movement, and presentation primitives
+├── src/world/                 # Arena, AI, raycasting, and performance governor
+├── src/experience/            # HUD, local ghost snapshots, and quality gates
+├── index.js                   # GitHub Action runtime
+├── action.yml                 # Reusable action definition
+├── dist/index.js              # Bundled GitHub Action runtime
+├── package.json               # Local scripts and dependencies
+└── .github/workflows/
+    ├── ci.yml                 # Repository checks
+    ├── nexus-omni-generate.yml # Manually dispatched FAL generation
+    └── pages.yml              # GitHub Pages deployment
+```
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: "AI provider error",
-        model: modelId,
-        error: "FAL API error",
-        details: data,
-      });
-    }
+## Quality evidence
 
-    // normalized response (clean API layer)
-    return res.status(200).json({
-      success: true,
-      type,
-      model: modelId,
-      output: data,
-      timestamp: Date.now(),
-    });
+Track-specific measurable gates, test evidence, independent findings, and known P2 limitations are recorded under `docs/tracks/`. Automated tests cover combat cadence, ammo conservation, movement bounds, recoil stability, arena sealing, AI transitions, raycasting, snapshot determinism, and quality-gate evaluation.
 
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: "Internal server error",
-    return res.status(200).json(data);
-  } catch (error) {
-    return res.status(500).json({
-      error: "Server error",
-      message: error.message,
-    });
-  }
-}
+## Security
+
+Never put API keys in `index.html`, commits, or browser storage. Use GitHub Actions secrets for workflows and server-side environment variables for a future API.
+
+## Contributing
+
+Open an issue describing the expected outcome and the provider or environment involved. Small, testable pull requests are preferred.
+
+## License
+
+[MIT](LICENSE)

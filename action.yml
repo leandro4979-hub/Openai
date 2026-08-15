@@ -1,19 +1,23 @@
-name: 'Nexus Omni Engine'
-description: 'Generate image from prompt'
+name: Nexus Omni Generate
+description: Generate an image from a prompt with FAL
+author: Leandro Fajardo
+branding:
+  icon: image
+  color: purple
 inputs:
   fal_key:
-    description: 'FAL.ai API key'
+    description: FAL API key
     required: true
   prompt:
-    description: 'Image prompt'
+    description: Image prompt
     required: true
-  subject_id:
-    description: 'Consistency ID'
+  seed:
+    description: Optional integer seed for reproducible output
     required: false
-    default: 'nexus-v2'
+    default: ""
 outputs:
   image_url:
-    description: 'Generated image URL'
+    description: Generated image URL
 runs:
-  using: 'node20'
-  main: 'index.js'   # ← your JavaScript entry point
+  using: node20
+  main: dist/index.js
