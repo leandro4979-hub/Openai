@@ -16,6 +16,7 @@ A focused, dependency-free first-person shooter vertical slice that runs directl
 - Local-only deterministic ghost snapshot primitives; this slice does not claim online multiplayer
 - A reusable GitHub Action for FAL image generation
 - Automated checks for JavaScript, metadata, and the static experience
+- Verified CodexAMOAurora dependency checks for Ollama, Caveman, and Carina, with strict bridge Bearer-token validation and actionable offline recovery details
 
 The repository retains its reusable FAL GitHub Action, but the browser experience is now Blacksite Relay.
 
@@ -81,6 +82,8 @@ Track-specific measurable gates, test evidence, independent findings, and known 
 ## Security
 
 Never put API keys in `index.html`, commits, or browser storage. Use GitHub Actions secrets for workflows and server-side environment variables for a future API.
+
+The service-status helper in `src/services/service-status.mjs` treats dependencies as offline until their real health payload is verified. Caveman and Carina bridge requests and server validation both use `Authorization: Bearer <token>`; an absent or malformed token never falls back to a successful state.
 
 ## Contributing
 
