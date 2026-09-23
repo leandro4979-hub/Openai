@@ -4,3 +4,4 @@ await rm("public", { recursive: true, force: true });
 await mkdir("public", { recursive: true });
 await cp("index.html", "public/index.html");
 await cp("src", "public/src", { recursive: true });
+await rm("public/src/services", { recursive: true, force: true });
