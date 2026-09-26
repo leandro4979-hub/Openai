@@ -25,6 +25,9 @@ function result(service, online, detail, checkedAt = new Date().toISOString()) {
 function isHealthyPayload(service, payload) {
   if (!payload || typeof payload !== "object") return false;
   if (service === "ollama") return Array.isArray(payload.models);
+  if (service === "carina" && payload.ok === true) {
+    return String(payload.service ?? "").toLowerCase() === "carinacontrol";
+  }
 
   const status = String(payload.status ?? "").toLowerCase();
   const namedService = String(payload.service ?? service).toLowerCase();
