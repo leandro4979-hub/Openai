@@ -49,6 +49,16 @@ test("Caveman and Carina require named healthy payloads", async () => {
   }
 });
 
+test("Carina accepts the verified CARINAControl health contract", async () => {
+  const status = await checkService("carina", {
+    url: "http://carina.test",
+    fetchImpl: async () => response(200, { service: "CARINAControl", ok: true, port: 51001 }),
+  });
+
+  assert.equal(status.online, true);
+  assert.equal(status.status, "online");
+});
+
 test("bridge client and server use the same strict Bearer token format", () => {
   assert.deepEqual(createBridgeHeaders(" secret "), { Authorization: "Bearer secret" });
   assert.equal(validateBridgeToken({ authorization: "Bearer secret" }, "secret"), true);
